@@ -1,6 +1,8 @@
 import { RefObject, useEffect, useRef } from "react";
-import { getLinePixels } from "@/utils/canvasUtils";
+import { getLinePixels, getCellFromMouseEvent } from "@/utils/canvasUtils";
 import { useCanvasStore } from "@/lib/state";
+import { isDrawingTool } from "@/utils/toolbarUtils";
+import { floodFill } from "@/utils/canvasUtils";
 
 export function useCanvasEvents(
   canvasRef: RefObject<HTMLCanvasElement | null>,
@@ -11,6 +13,11 @@ export function useCanvasEvents(
   const lastCellRef = useRef<{ x: number; y: number } | null>(null);
   const didCommitRef = useRef(false);
   const preStrokeSnapshotRef = useRef<Record<string, string>>({});
+  const isSpaceHeld = useRef(false);
+
+  const canvasWidth = useCanvasStore((s) => s.canvasWidth);
+  const canvasHeight = useCanvasStore((s) => s.canvasHeight);
+  const color = useCanvasStore((s) => s.color);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -19,16 +26,27 @@ export function useCanvasEvents(
     let isDrawing = false;
     let strokePixels: Record<string, string> = {};
 
-    const getCell = (e: MouseEvent) => {
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.floor((e.clientX - rect.left) / pixelSize);
-      const y = Math.floor((e.clientY - rect.top) / pixelSize);
-      return { x, y };
+    // Listen for spacebar key events to track panning mode
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === "Space") isSpaceHeld.current = true;
     };
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (e.code === "Space") isSpaceHeld.current = false;
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keyup", handleKeyUp);
+
+    // Use utility for cell calculation
+    const getCell = (e: MouseEvent) =>
+      getCellFromMouseEvent(e, canvas, pixelSize);
 
     const handleMouseDown = (e: MouseEvent) => {
       const store = useCanvasStore.getState();
       const pixels = store.pixels;
+      const tool = store.tool;
+
+      // Disable drawing if panning (space held) or not a drawing tool
+      if (isSpaceHeld.current || !isDrawingTool(tool) || e.button !== 0) return;
 
       isDrawing = true;
       didCommitRef.current = false;
@@ -36,10 +54,27 @@ export function useCanvasEvents(
       preStrokeSnapshotRef.current = structuredClone(pixels);
 
       const cell = getCell(e);
+
+      if (tool === "fill") {
+        // Use flood fill
+        const filled = floodFill(
+          cell.x,
+          cell.y,
+          pixels,
+          color,
+          canvasWidth,
+          canvasHeight
+        );
+        if (Object.keys(filled).length > 0) {
+          commitHistory(structuredClone(pixels));
+          setPixelsExternal((prev) => ({ ...prev, ...filled }));
+        }
+        return;
+      }
+
       lastCellRef.current = cell;
 
       // Apply the initial stroke
-      const tool = store.tool;
       const key = `${cell.x},${cell.y}`;
       const current = pixels[key];
 
@@ -49,8 +84,8 @@ export function useCanvasEvents(
           newPixels[key] = "";
         }
       } else {
-        if (current !== "#000") {
-          newPixels[key] = "#000";
+        if (current !== color) {
+          newPixels[key] = color;
         }
       }
 
@@ -101,9 +136,9 @@ export function useCanvasEvents(
             strokePixels[key] = "";
           }
         } else {
-          if (current !== "#000") {
-            newPixels[key] = "#000";
-            strokePixels[key] = "#000";
+          if (current !== color) {
+            newPixels[key] = color;
+            strokePixels[key] = color;
           }
         }
       }
@@ -147,6 +182,16 @@ export function useCanvasEvents(
       canvas.removeEventListener("mousemove", handleMouseMove);
       canvas.removeEventListener("mouseup", handleMouseUp);
       canvas.removeEventListener("mouseleave", handleMouseUp);
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keyup", handleKeyUp);
     };
-  }, [canvasRef, pixelSize, setPixelsExternal, commitHistory]);
+  }, [
+    canvasRef,
+    pixelSize,
+    setPixelsExternal,
+    commitHistory,
+    color,
+    canvasWidth,
+    canvasHeight,
+  ]);
 }

@@ -20,3 +20,21 @@ export function useOutsideClick<T extends HTMLElement>(
     };
   }, [ref, handler]);
 }
+
+export function usePreventSpacebarButtonPress() {
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (
+        e.code === "Space" &&
+        document.activeElement &&
+        !["INPUT", "TEXTAREA"].includes(document.activeElement.tagName) &&
+        !(document.activeElement as HTMLElement).isContentEditable
+      ) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener("keydown", handler, { capture: true });
+    return () =>
+      window.removeEventListener("keydown", handler, { capture: true });
+  }, []);
+}

@@ -14,6 +14,10 @@ interface CanvasState {
   canvasHeight: number;
   pixelSize: number;
   initialPixelSize: number;
+  panX: number;
+  panY: number;
+  resetPan: () => void;
+  setPan: (x: number, y: number) => void;
 
   setPixelSize: (size: number) => void;
   setInitialPixelSize: (size: number) => void;
@@ -44,6 +48,11 @@ export const useCanvasStore = create<CanvasState>((set, get) => ({
   canvasHeight: CANVAS.DEFAULT_HEIGHT,
   pixelSize: CANVAS.DEFAULT_PIXEL_SIZE,
   initialPixelSize: CANVAS.DEFAULT_PIXEL_SIZE,
+  panX: 0,
+  panY: 0,
+  resetPan: () => set({ panX: 0, panY: 0 }),
+
+  setPan: (x, y) => set({ panX: x, panY: y }),
 
   setInitialPixelSize: (size) => set({ initialPixelSize: size }),
   setPixelSize: (size) => set({ pixelSize: size }),

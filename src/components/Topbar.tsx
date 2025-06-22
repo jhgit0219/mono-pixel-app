@@ -57,7 +57,11 @@ export default function TopBar() {
         </div>
       </div>
 
-      {dialogOpen && <CanvasSizeDialog onClose={() => setDialogOpen(false)} />}
+      {dialogOpen && (
+        <div className="z-50">
+          <CanvasSizeDialog onClose={() => setDialogOpen(false)} />
+        </div>
+      )}
     </>
   );
 }

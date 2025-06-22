@@ -3,6 +3,7 @@ import { useCanvasEvents } from "./useCanvasEvents";
 import { useCanvasDraw } from "./useCanvasDraw";
 import { useCanvasStore } from "@/lib/state";
 import { CANVAS, LAYOUT } from "@/types";
+import { getOptimalPixelSize } from "@/utils/canvasUtils";
 
 interface UseCanvasOptions {
   pixelSize?: number;
@@ -21,15 +22,8 @@ export function useCanvas({
   const setInitialPixelSize = useCanvasStore((s) => s.setInitialPixelSize);
 
   useEffect(() => {
-    const availableWidth =
-      window.innerWidth - LAYOUT.TOOLBAR_WIDTH - LAYOUT.MARGIN * 2;
-    const availableHeight =
-      window.innerHeight - LAYOUT.TOPBAR_HEIGHT - LAYOUT.MARGIN * 2;
-
-    const maxPxByWidth = Math.floor(availableWidth / canvasWidth);
-    const maxPxByHeight = Math.floor(availableHeight / canvasHeight);
-
-    const optimalPixelSize = Math.max(1, Math.min(maxPxByWidth, maxPxByHeight));
+    // Use utility for optimal pixel size calculation
+    const optimalPixelSize = getOptimalPixelSize(canvasWidth, canvasHeight, LAYOUT);
     const finalPixelSize = pixelSize ?? optimalPixelSize;
 
     setInitialPixelSize(optimalPixelSize);

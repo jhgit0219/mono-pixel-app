@@ -12,7 +12,7 @@ export default function Toolbar() {
 
   return (
     <div
-      className={`w-36 p-3 flex flex-col gap-4 ${theme.sidebarBg} ${theme.sidebarText}`}
+      className={`w-36 h-full p-3 flex flex-col gap-4 ${theme.sidebarBg} ${theme.sidebarText}`}
     >
       <h2 className={`text-lg font-bold ${theme.heading}`}>Toolbar</h2>
 

@@ -1,4 +1,3 @@
-"use client";
 import { useCanvasStore } from "@/lib/state";
 
 const PIXEL_SIZE_MAX = 60;
@@ -8,6 +7,10 @@ export default function ZoomControls() {
   const pixelSize = useCanvasStore((s) => s.pixelSize);
   const initialPixelSize = useCanvasStore((s) => s.initialPixelSize);
   const setPixelSize = useCanvasStore((s) => s.setPixelSize);
+
+  const panX = useCanvasStore((s) => s.panX);
+  const panY = useCanvasStore((s) => s.panY);
+  const setPan = useCanvasStore((s) => s.setPan);
 
   const maxOffset =
     Math.floor((PIXEL_SIZE_MAX - initialPixelSize) / ZOOM_STEP) * ZOOM_STEP;
@@ -24,10 +27,15 @@ export default function ZoomControls() {
     setPixelSize(next);
   };
 
+  const resetZoomAndPan = () => {
+    setPixelSize(initialPixelSize);
+    setPan(0, 0);
+  };
+
   const atMaxZoom = pixelSize >= initialPixelSize + maxOffset;
   const atMinZoom = pixelSize <= initialPixelSize;
-
-  const resetZoom = () => setPixelSize(initialPixelSize);
+  const isPanned = panX !== 0 || panY !== 0;
+  const canReset = !atMinZoom || isPanned;
 
   const handleSlider = (e: React.ChangeEvent<HTMLInputElement>) => {
     const offset = Number(e.target.value);
@@ -69,8 +77,8 @@ export default function ZoomControls() {
       </button>
 
       <button
-        onClick={resetZoom}
-        disabled={atMinZoom}
+        onClick={resetZoomAndPan}
+        disabled={!canReset}
         className="text-xs mt-1 px-2 py-1 border rounded text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
       >
         Reset
