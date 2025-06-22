@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useCanvasStore } from "@/lib/state";
 import { theme } from "@/lib/theme";
 

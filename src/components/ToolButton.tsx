@@ -30,6 +30,8 @@ export default function ToolButton({ id, label, icon, type }: ToolButtonProps) {
   return (
     <button
       onClick={handleClick}
+      aria-label={label}
+      title={label}
       className={`w-10 h-10 border rounded flex items-center justify-center ${
         isActive ? theme.toolActive : theme.toolInactive
       }`}

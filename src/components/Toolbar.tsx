@@ -8,7 +8,7 @@ export default function Toolbar() {
   const color = useCanvasStore((s) => s.color);
   const setColor = useCanvasStore((s) => s.setColor);
   const clear = useCanvasStore((s) => s.clearPixels);
-  const save = useCanvasStore((s) => s.savePixels);
+  // const save = useCanvasStore((s) => s.savePixels);
 
   return (
     <div
